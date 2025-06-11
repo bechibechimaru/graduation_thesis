@@ -1,0 +1,53 @@
+ITリテラシーと科学技術への関心の関係分析
+
+1. 基本統計
+ITリテラシーが高い人の総数: 125 
+ITリテラシーが低い人の総数: 752 
+
+2. 科学技術への関心
+ITリテラシーが高い人の中で科学技術に関心がある人の割合: 85.6 %
+ITリテラシーが低い人の中で科学技術に関心がある人の割合: 66.22 %
+
+3. カイ二乗検定の結果
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  contingency_table
+X-squared = 17.914, df = 1, p-value = 2.311e-05
+
+
+4. 相関分析の結果
+
+	Pearson's product-moment correlation
+
+data:  as.numeric(it_data$IT_Literacy == "High") and as.numeric(it_data$Interest)
+t = 4.3792, df = 875, p-value = 1.335e-05
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.08103237 0.21060464
+sample estimates:
+      cor 
+0.1464466 
+
+
+5. 回帰分析の結果
+
+Call:
+lm(formula = as.numeric(Interest) ~ as.numeric(IT_Literacy == 
+    "High"), data = it_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.8560 -0.6622  0.3378  0.3378  0.3378 
+
+Coefficients:
+                                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                        0.66223    0.01670  39.643  < 2e-16 ***
+as.numeric(IT_Literacy == "High")  0.19377    0.04425   4.379 1.34e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.4581 on 875 degrees of freedom
+Multiple R-squared:  0.02145,	Adjusted R-squared:  0.02033 
+F-statistic: 19.18 on 1 and 875 DF,  p-value: 1.335e-05
+
