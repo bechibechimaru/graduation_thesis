@@ -16,6 +16,8 @@
 
 [参照](../先行研究/e-Voting%20intent-%20A%20comparison%20of%20young%20and%20elderly%20voters.pdf)
 
+質問表：Carter & Belanger, 2005
+
 論文内での調査対象：
 
 `5. Methodlogy`を参照
@@ -32,7 +34,7 @@
 
 ### 有用な引用
 
-コストが削減されれば投票率は向上するのではないか
+コストが削減されれば投票率は向上するのではないか　理論か解釈どちらで引用されているのか
 `Rallings, C., & Thrasher, M. (2007). The turnout “gap”and the costs of voting. Public
 Choice, 131, 333–344.`
 
@@ -54,6 +56,7 @@ PCI items (Moore & Benbasat, 1991; Van Slyke et al., 2004); and intentions
 ```
 
 - `TAM`によると知覚された有用性と知覚された使いやすさがシステム仕様に対する個人の態度に影響を与える。
+- 使いやすさを明言し、限定するといいかも？　(laptop only or smartphone only)
 参考
 
 ```text
@@ -61,7 +64,6 @@ According to TAM, per-
 ceived usefulness (PU) and perceived ease of  use (PEOU) influence one’s attitude towards
 system  usage,  which  influences  one’s  behavioural  intention  to  use  a  system,  which,  in  turn,
 determines actual system usage. 
-
 ```
 
 ## 4. `2015「くらしと科学技術に関する意識調査」`についての分析結果
@@ -129,6 +131,51 @@ determines actual system usage.
 
 [参照](../Statics/くらしと科学技術に関する意識調査/result/skill_relation/Q8_19_skill.md)
 
+### ITリテラシーが高いかどうかを測る指標
+
+ITリテラシーより関心・意欲・抵抗感らの項目のほうがいいかも？
+主観的でも齟齬なく測れる指標の方がいいよね
+そうじゃなければテスト
+
+現在:Q1~3
+提案：Q4使ったほうがいいのでは？
+
 ## できていないこと
 
 - 参考にした論文の被引用論文のリサーチ
+
+## メモ
+
+- 先行研究の分析
+
+政府の信頼は重要であるのではないか。ただ先行研究では異なる結果が現れている。
+
+- 2015科学技術調査において理論が大事
+  - Q9, Q11などを従属変数として役立てることができるのではないか
+
+- 交絡変数も考えたほうがいいのでは
+
+- 仮説を考えてみる：実験とつながる理論と仮説を考える
+  - 自分が何を大事にしたいのか
+    - エンジニアとしてコントロールできるという点が重要なのか
+    - セキュリティ
+      - 質問表などで安全性をどう表現するのか
+  - 信頼度を凌駕するような使いたくなるような要素があるのか
+
+- e-goverment
+  - マイナンバーカード：既存の想像しやすい要素と組み合わせてみてもいいかも
+    - カードから投票ができる
+    - 利用していても政府を信用していない可能性は大いにある
+    - あらゆる証明書の有効期限が統一される
+    - SNSのデータを集める
+      - テキスト分析
+
+- tec-policy
+  - どう表現するのか
+
+e-votingに限らずe-governmentに着目してもいいんじゃないか
+-> 仮説の導入へ
+
+社会科学のためのデータ分析入門　5章：発見
+-> 分析の手法が紹介されている
+トピック分析
