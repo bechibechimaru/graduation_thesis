@@ -38,9 +38,31 @@ Choice, 131, 333–344.`
 
 ### `政府への信頼が重要ではない`と主張している論文
 
-[政府への信頼が重要である]()
+[政府への信頼が重要である](../先行研究/Information Systems Journal - 2005 - Carter - The utilization of e‐government services  citizen trust  innovation and (1).pdf)
 
-[Todo] 大学内で閲覧し、進める。
+- 研究方法：コミュニティコンサートに参加した106人
+- 質問項目：以下を参照
+参考
+
+```text
+To test the model in the most realistic way possible, the study was conducted through a survey
+of  a broad diversity of  citizens at a community event. Items were adapted from previous stud-
+ies: trustworthiness of  the internet (McKnight et al., 2002); trustworthiness of  state government
+(Pavlou,2003; Van Slyke et al.,2004); perceived ease of use and usefulness (Davis,  1989;efen & Straub, 2000); 
+PCI items (Moore & Benbasat, 1991; Van Slyke et al., 2004); and intentions 
+(Gefen & Straub, 2000; Pavlou, 2003). Final survey items are in Appendix 1.
+```
+
+- `TAM`によると知覚された有用性と知覚された使いやすさがシステム仕様に対する個人の態度に影響を与える。
+参考
+
+```text
+According to TAM, per-
+ceived usefulness (PU) and perceived ease of  use (PEOU) influence one’s attitude towards
+system  usage,  which  influences  one’s  behavioural  intention  to  use  a  system,  which,  in  turn,
+determines actual system usage. 
+
+```
 
 ## 4. `2015「くらしと科学技術に関する意識調査」`についての分析結果
 
@@ -106,3 +128,7 @@ Choice, 131, 333–344.`
 4. 全体として、ITリテラシーの向上が科学技術への関心の向上につながる可能性が示唆される。相関係数（0.146）は前回の分析（0.096）と比較して若干高い値を示しており、より強い関連性が認められる。
 
 [参照](../Statics/くらしと科学技術に関する意識調査/result/skill_relation/Q8_19_skill.md)
+
+## できていないこと
+
+- 参考にした論文の被引用論文のリサーチ
