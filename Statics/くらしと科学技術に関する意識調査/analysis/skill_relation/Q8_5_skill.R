@@ -8,7 +8,7 @@ ra_data = read.csv("../../sources/origin_data/RawData_OpinionPoll_STIpolicy.csv"
 # Q1で1または2を回答している人を抽出
 q1_positive_data <- ra_data[ra_data$Q1 %in% c(1, 2), ]
 # Q1で4または5を回答している人を抽出
-q1_negative_data <- ra_data[ra_data$Q1 %in% c(4,5), ]
+q1_negative_data <- ra_data[ra_data$Q1 %in% c(4, 5), ]
 
 # [ITリテラシーが高い人]Q2で1を回答している人を抽出
 q2_positive_data <- ra_data[ra_data$Q2 %in% c(1), ]
