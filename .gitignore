@@ -1,1 +1,4 @@
+.DS_Store
 *.pdf
+**/target/**
+spring_draft/document_file/
