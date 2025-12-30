@@ -2,3 +2,5 @@
 *.pdf
 **/target/**
 spring_draft/document_file/
+knowledge
+tmp.md
