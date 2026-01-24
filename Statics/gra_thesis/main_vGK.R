@@ -7,19 +7,11 @@
 ##############
 
 # ワークスペースを掃除する
-
-cat("\n========================================\n")
-cat("  分析スクリプトを開始します\n")
-cat("========================================\n\n")
-
 rm(list=ls())
 
 # ワーキングディレクトリ
 ## setwd("~/GoogleDrive/Lectures/Zemi_Meiji/ZemiPrivateData/analysis_codes/04_regression")
 # setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # 自動設定
-cat("\n========================================\n")
-cat("  現在のディレクトリ\n")
-cat("========================================\n\n")
 print(getwd() )
 
 # パッケージ（追加機能）の追加
@@ -37,8 +29,6 @@ library(estimatr) ## ロバスト標準誤差を使った回帰分析（lm_robus
 ##############################
 
 ## データを読み込む
-
-cat("=== データの読み込み ===\n")
 library(haven)
 library(labelled)
 d <- read_sav("experiment_origin_data.sav") 
@@ -48,9 +38,6 @@ d <- read_sav("experiment_origin_data.sav")
 table(d$Progress)
 d <- subset(d, Progress == 100)
 nrow(d) ## 1191人の有効回答あり
-
-# フィルタリング後のデータをCSV形式で出力
-write.csv(d, file = 'valid_data.csv', row.names = FALSE)
 
 # ##########
 # ## 仮説 ##
@@ -75,45 +62,27 @@ write.csv(d, file = 'valid_data.csv', row.names = FALSE)
 ## idで個人を特定
 dn <- data.frame(id = d$ResponseId) #回答者ID
 
-# 全ての変数名をチェック
-# cat("\n=== 全ての変数名をチェック ===\n")
-
 ## 従属変数 ##
-cat("\n === 従属変数を処理中 ===")
-
 # 投票参加意向
-cat("  - 投票参加意向 (sankaiko) をdnに集約 - \n")
 dn$sankaiko <- d$exp2_q1a_1
-table(dn$sankaiko, exclude=F)
 
 # オンライン投票利用意向
-cat("  - オンライン投票参加意向 (online_sankaiko) をdnに集約 - \n")
 dn$online_sankaiko <- d$exp2_q1b_3
-table(dn$online_sankaiko, exclude = F)
 
 # 独立変数
 # オンライン投票導入ダミー(1=導入, 0=非導入)
-table(d$exp2_tech, d$exp2_onlinevote, exclude=F)
 dn$onlinevote <- as.numeric(d$exp2_onlinevote)
-table(dn$onlinevote, exclude=F)
 
 # 政府信頼高ダミー（1=信頼高、0=信頼低）
-table(d$exp2_govt, d$exp2_govtH, exclude = FALSE)
 dn$govtH <- as.numeric(d$exp2_govtH)
-table(dn$govtH, exclude = F)
 
 # 技術信頼高ダミー（1=信頼高、0=信頼低/非導入）
-table(d$exp2_tech, d$exp2_techH, exclude = FALSE)
 dn$techH <- as.numeric(d$exp2_techH)
-table(dn$techH, exclude=F) 
+
 
 ## 条件付け変数 ##
 
 # 政治関心
-print("\n=====政治関心のformating====\n")
-var_label(d$polint)
-val_labels(d$polint)
-table(d$polint, exclude=FALSE)
 dn$kanshin <- NA
 dn$kanshin[which(d$polint%in%c(3,4))] <- 0
 dn$kanshin[which(d$polint%in%c(2))] <- 0.5
@@ -121,31 +90,13 @@ dn$kanshin[which(d$polint%in%c(1))] <- 1
 table(dn$kanshin, exclude=F)
 
 # インターネット使用量
-print("\n=====インターネット使用量のformating====\n")
-var_label(d$useinternet)
-val_labels(d$useinternet)
-table(d$useinternet, exclude=FALSE)
 dn$useinternet <- d$useinternet
-table(dn$useinternet, exclude=F)
-print("\n========================================\n")
 
 # 社会への暮らし向きに対する政府の責任
-print("\n=====社会の暮らし向きに対する政府の責任のformatting====\n")
-var_label(d$gvtresp_1)
-val_labels(d$gvtresp_1)
-table(d$gvtresp_1, exclude=FALSE) #かなり偏りがある
 dn$gvtresp_1 <- 5 - d$gvtresp_1 #GK 1が責任があるなので、逆転させる
-table(dn$gvtresp_1, exclude=F)
-print("\n=======================================================\n")
 
 # 私生活への暮らし向きに対する政府の責任
-print("\n=====私生活の暮らし向きに対する政府の責任のformatting====\n")
-var_label(d$gvtresp_2)
-val_labels(d$gvtresp_2)
-table(d$gvtresp_2, exclude=FALSE)
 dn$gvtresp_2 <- 5 - d$gvtresp_2 #GK 1が責任があるなので、逆転させる
-table(dn$gvtresp_2, exclude=F)
-print("\n=======================================================\n")
 
 ##オンライン投票群のみの変数####################################################
 # オンライン投票=1の群に限定
@@ -203,6 +154,18 @@ mh5c_b <- lm_robust(online_sankaiko ~ govtH * gvtresp_1 +
 
 # H5の簡易的な結果
 screenreg(list(mh5a, mh5b, mh5c_a, mh5c_b), include.ci = FALSE,
+          digits=3, single.row = FALSE, 
+          stars = c(0.001,0.01,0.05,0.1), symbol="+")
+
+
+print("\n=====発展的な仮説・子供の数====\n")
+dn$marrykids <- d$marrykids
+dn$marrykids[which(d$marrykids%in%c(1,4))] <- 0
+dn$marrykids[which(d$marrykids%in%c(2,5))] <- 0.5
+dn$marrykids[which(d$marrykids%in%c(3,6))] <- 1
+mhex_marrykids <- lm_robust(sankaiko ~ onlinevote + govtH + techH + marrykids, data = dn)
+# 簡易的な結果の表示
+screenreg(list(mhex_marrykids), include.ci = FALSE,
           digits=3, single.row = FALSE, 
           stars = c(0.001,0.01,0.05,0.1), symbol="+")
 
@@ -860,3 +823,111 @@ ggplot(genkai_h5c_b, aes(y=est)) +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：オンライン投票利用意向", y="政府信頼の限界効果", x=setmlab)
 ggsave("h5c_b_genkaikoka_plot.png", width = 6, height = 4)
+
+
+###########################################################
+## 子供の数の予測値プロット ##############################
+###########################################################
+
+# 予測値の算出
+yosoku_marrykids <- genpr(dpr = dn, 
+                          mpr = mhex_marrykids, 
+                          setx = "marrykids", 
+                          setxvals = c(0, 0.5, 1))
+
+# ラベル設定
+setxlab <- "子供の数"
+setylab <- "投票参加意向"
+setmlabels <- c("子供なし\n(0)", "子供1人\n(0.5)", "子供2人以上\n(1)")
+
+# 予測値プロット
+ggplot(yosoku_marrykids) + 
+  geom_errorbar(aes(x=as.factor(x), ymin=lo95, ymax=up95), 
+                width=0.1, linewidth=0.5, color="black") +
+  geom_errorbar(aes(x=as.factor(x), ymin=lo90, ymax=up90), 
+                width=0, linewidth=2, color="black") +
+  geom_point(aes(x=as.factor(x), y=pr), 
+             color="white", size=3, shape=21, fill="black") +
+  scale_x_discrete(labels=setmlabels) +
+  labs(x=setxlab, y=paste0(setylab, "（予測値平均）"),
+       caption="注：エラーバーは、90％および95％信頼区間を示している。") +
+  theme(plot.subtitle = element_text(hjust=0.5))
+ggsave("marrykids_yosokuchi_plot.png", width = 6, height = 4)
+
+###########################################################
+## 子供の数とオンライン投票導入の交互作用モデル #########
+###########################################################
+
+# 交互作用項を含むモデルを推定
+mhex_marrykids_int <- lm_robust(sankaiko ~ onlinevote*marrykids + govtH + techH, data = dn)
+
+# 結果の表示
+screenreg(list(mhex_marrykids_int), include.ci = FALSE,
+          digits=3, single.row = FALSE, 
+          stars = c(0.001,0.01,0.05,0.1), symbol="+")
+
+###########################################################
+## オンライン投票導入の限界効果（子供の数で条件付け） ##
+###########################################################
+
+# 限界効果の算出
+genkai_marrykids <- intereff(m = mhex_marrykids_int, 
+                             main = "onlinevote",  # 主効果
+                             mod = "marrykids",    # 条件付け変数
+                             modrange = c(0, 1),   # 子供の数の範囲
+                             nsim = 3)             # 0, 0.5, 1の3点
+
+# ラベル設定
+setxlab <- "オンライン投票導入の効果量"
+setmlab <- "子供の数"
+setmlabels <- c("子供なし\n(0)", "子供1人\n(0.5)", "子供2人以上\n(1)")
+
+# 限界効果プロット
+ggplot(genkai_marrykids, aes(y=est)) +
+  geom_hline(aes(yintercept=0), linetype=2) + 
+  geom_errorbar(aes(ymin=lo95, ymax=up95, x=as.factor(mod)), 
+                width=0.1, linewidth=0.5) +
+  geom_errorbar(aes(ymin=lo90, ymax=up90, x=as.factor(mod)), 
+                width=0, linewidth=2) +
+  geom_point(aes(x=as.factor(mod)), color="white", size=3, shape=21, fill="black") +
+  scale_x_discrete(labels=setmlabels) +
+  labs(subtitle="従属変数：投票参加意向", 
+       y=setxlab, x=setmlab,
+       caption="注：エラーバーは、90％および95％信頼区間を示している。") +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.y = element_blank(),
+        plot.subtitle = element_text(hjust=0.5))
+ggsave("marrykids_genkaikoka_plot.png", width = 6, height = 4)
+
+###########################################################
+## 子供の数の限界効果（オンライン投票導入で条件付け） ##
+###########################################################
+
+# 限界効果の算出（逆方向）
+genkai_marrykids_rev <- intereff(m = mhex_marrykids_int, 
+                                  main = "marrykids",  # 主効果
+                                  mod = "onlinevote",  # 条件付け変数
+                                  modrange = c(0, 1),  # オンライン投票導入の範囲
+                                  nsim = 2)            # 0, 1の2点
+
+# ラベル設定
+setxlab <- "子供の数の効果量"
+setmlab <- "オンライン投票導入"
+setmlabels <- c("非導入\n(0)", "導入\n(1)")
+
+# 限界効果プロット
+ggplot(genkai_marrykids_rev, aes(y=est)) +
+  geom_hline(aes(yintercept=0), linetype=2) + 
+  geom_errorbar(aes(ymin=lo95, ymax=up95, x=as.factor(mod)), 
+                width=0.1, linewidth=0.5) +
+  geom_errorbar(aes(ymin=lo90, ymax=up90, x=as.factor(mod)), 
+                width=0, linewidth=2) +
+  geom_point(aes(x=as.factor(mod)), color="white", size=3, shape=21, fill="black") +
+  scale_x_discrete(labels=setmlabels) +
+  labs(subtitle="従属変数：投票参加意向", 
+       y=setxlab, x=setmlab,
+       caption="注：エラーバーは、90％および95％信頼区間を示している。") +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.y = element_blank(),
+        plot.subtitle = element_text(hjust=0.5))
+ggsave("marrykids_genkaikoka_rev_plot.png", width = 6, height = 4)
