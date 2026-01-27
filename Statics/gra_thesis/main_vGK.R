@@ -2,40 +2,26 @@
 # 著者: 軽部 将伍
 # 日付: 
 
-##############
-## 予備設定 ##
-##############
-
 # ワークスペースを掃除する
 rm(list=ls())
 
 # ワーキングディレクトリ
-## setwd("~/GoogleDrive/Lectures/Zemi_Meiji/ZemiPrivateData/analysis_codes/04_regression")
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # 自動設定
 print(getwd() )
 
 # パッケージ（追加機能）の追加
-## エラーが出たら、install.packages("パッケージ名")でインストールすること。
 library(ggplot2) # グラフ出力に使う。
-# theme_set(theme_bw()) # Windowsの場合
-# theme_set(theme_bw(base_family = "HiraKakuProN-W3")) # Macの場合
 theme_set(theme_bw())
 library(texreg) ## 回帰表の出力
 library(htmltools) ## HTMLで表をプレビュー
 library(estimatr) ## ロバスト標準誤差を使った回帰分析（lm_robust）の実行
-
-##############################
-## データセットのインポート ##
-##############################
-
-## データを読み込む
+## データ読み込み用のライブラリ
 library(haven)
 library(labelled)
+
+## データセットのインポート ##
 d <- read_sav("experiment_origin_data.sav") 
 
 ## 最後まで回答完了している人だけをデータに残す
-
-table(d$Progress)
 d <- subset(d, Progress == 100)
 nrow(d) ## 1191人の有効回答あり
 
@@ -150,16 +136,33 @@ mh5a <- lm_robust(sankaiko ~ onlinevote*kanshin + govtH + techH, data = dn)
 # H5b. Y=投票参加意向、X=オンライン投票導入、M=SNSの使用頻度、Z=政府信頼高、技術信頼高
 mh5b <- lm_robust(sankaiko ~ onlinevote*useinternet + govtH + techH, data = dn)
 # H5c-a. Y=投票参加意向、X=政府信頼高、M=景気や暮らし向きに対する政府の責任認識、Z=オンライン投票導入、技術信頼高
-mh5c_a <- lm_robust(sankaiko ~ govtH*gvtresp_1 + onlinevote + techH, data = dn)
+mh5c_a_1 <- lm_robust(sankaiko ~ govtH*gvtresp_1 + onlinevote + techH, data = dn)
+mh5c_a_2 <- lm_robust(sankaiko ~ govtH*gvtresp_2 + onlinevote + techH, data = dn)
 # H5c-b. （オンライン投票導入=1にサンプルを限定）Y=オンライン投票利用意向、X=政府信頼高、M=景気や暮らし向きに対する政府の責任認識、Z=技術信頼高
-mh5c_b <- lm_robust(online_sankaiko ~ govtH * gvtresp_1 + 
+mh5c_b_1 <- lm_robust(online_sankaiko ~ govtH * gvtresp_1 + 
+                      techH, data = dn_online)
+mh5c_b_2 <- lm_robust(online_sankaiko ~ govtH * gvtresp_2 + 
                       techH, data = dn_online)
 
 # H5b. Y=投票参加意向、X=オンライン投票導入、M=SNSの使用頻度、Z=政府信頼高、技術信頼高: SNSの使用頻度を01に設定
 mh5b_dummy <- lm_robust(sankaiko ~ onlinevote*dummy_useinternet + govtH + techH, data = dn)
 
-# H5の簡易的な結果
-screenreg(list(mh5a, mh5b, mh5c_a, mh5c_b), include.ci = FALSE,
+# H5A, Bの簡易的な結果
+print("\n=====仮説5A,B====\n")
+
+screenreg(list(mh5a, mh5b), include.ci = FALSE,
+          digits=3, single.row = FALSE, 
+          stars = c(0.001,0.01,0.05,0.1), symbol="+")
+
+
+print("\n=====仮説5C_A====\n")
+screenreg(list(mh5c_a_1, mh5c_a_2), include.ci = FALSE,
+          digits=3, single.row = FALSE, 
+          stars = c(0.001,0.01,0.05,0.1), symbol="+")
+
+
+print("\n=====仮説5C_B====\n")
+screenreg(list(mh5c_b_1, mh5c_b_2), include.ci = FALSE,
           digits=3, single.row = FALSE, 
           stars = c(0.001,0.01,0.05,0.1), symbol="+")
 
@@ -632,7 +635,7 @@ ggsave("h5b_plot.png", width = 6, height = 4)
 
 # --- H5C_A: 政府信頼*政府責任 -> 投票参加意向 ---
 quantile(dn$gvtresp_1, probs=c(0.1,0.9)) #10%点と、90%点をとる
-yosoku_h5c_a <- genpr(dpr = dn, mpr = mh5c_a, setx = "govtH", setxvals = c(0, 1),
+yosoku_h5c_a <- genpr(dpr = dn, mpr = mh5c_a_1, setx = "govtH", setxvals = c(0, 1),
                     setm = "gvtresp_1", setmvals = list("ある程度の責任\n（3; 10%点）" = 3, "大きな責任\n（4; 90%点）" = 4))
 
 ggplot(yosoku_h5c_a) + 
@@ -643,14 +646,32 @@ ggplot(yosoku_h5c_a) +
   geom_point(aes(x=as.factor(x), y=pr, shape=labelledm), 
              color="white", position = position_dodge(width=0.3)) +
   scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
-  scale_color_brewer(name="政府責任認識", type="qual", palette=2) + 
-  scale_shape_discrete(name="政府責任認識") +
+  scale_color_brewer(name="政府責任認識(社会)", type="qual", palette=2) + 
+  scale_shape_discrete(name="政府責任認識(社会)") +
   labs(x="政府信頼", y="投票参加意向（予測値）", subtitle="H5C_Aの検証")
 ggsave("h5c_a_plot.png", width = 6, height = 4)
 
+# --- H5C_A_2: 政府信頼*政府責任(自身の暮らし) -> 投票参加意向 ---
+quantile(dn$gvtresp_2, probs=c(0.1,0.9)) #10%点と、90%点をとる
+yosoku_h5c_a_2 <- genpr(dpr = dn, mpr = mh5c_a_2, setx = "govtH", setxvals = c(0, 1),
+                    setm = "gvtresp_2", setmvals = list("ある程度の責任\n（3; 10%点）" = 3, "大きな責任\n（4; 90%点）" = 4))
+
+ggplot(yosoku_h5c_a_2) + 
+  geom_errorbar(aes(x=as.factor(x), ymin=lo95, ymax=up95, color=labelledm), 
+                width=0.1, linewidth=0.5, position = position_dodge(width=0.3)) +
+  geom_errorbar(aes(x=as.factor(x), ymin=lo90, ymax=up90, color=labelledm), 
+                width=0, linewidth=2, position = position_dodge(width=0.3)) +
+  geom_point(aes(x=as.factor(x), y=pr, shape=labelledm), 
+             color="white", position = position_dodge(width=0.3)) +
+  scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
+  scale_color_brewer(name="政府責任認識(自身)", type="qual", palette=2) + 
+  scale_shape_discrete(name="政府責任認識(自身)") +
+  labs(x="政府信頼", y="投票参加意向（予測値）", subtitle="H5C_A_2の検証")
+ggsave("h5c_a_2_plot.png", width = 6, height = 4)
+
 # --- H5C_B: 政府信頼*政府責任 -> オンライン利用意向 ---
-yosoku_h5c_b <- genpr(dpr = dn_online, mpr = mh5c_b, setx = "govtH", setxvals = c(0, 1),
-                      setm = "gvtresp_1", setmvals = list("ある程度の責任\n（3; 10%点）" = 3, "大きな責任\n（4; 90%点）" = 4))
+yosoku_h5c_b <- genpr(dpr = dn_online, mpr = mh5c_b_1, setx = "govtH", setxvals = c(0, 1),
+                      setm = "gvtresp_2", setmvals = list("ある程度の責任\n（3; 10%点）" = 3, "大きな責任\n（4; 90%点）" = 4))
 
 ggplot(yosoku_h5c_b) + 
   geom_errorbar(aes(x=as.factor(x), ymin=lo95, ymax=up95, color=labelledm), 
@@ -660,11 +681,27 @@ ggplot(yosoku_h5c_b) +
   geom_point(aes(x=as.factor(x), y=pr, shape=labelledm), 
              color="white", position = position_dodge(width=0.3)) +
   scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
-  scale_color_brewer(name="政府責任認識", type="qual", palette=2) + 
-  scale_shape_discrete(name="政府責任認識") +
+  scale_color_brewer(name="政府責任認識(社会)", type="qual", palette=2) + 
+  scale_shape_discrete(name="政府責任認識(社会)") +
   labs(x="政府信頼", y="オンライン投票利用意向（予測値）", subtitle="H5C_Bの検証")
 ggsave("h5c_b_plot.png", width = 6, height = 4)
 
+# --- H5C_B_2: 政府信頼*政府責任 -> オンライン利用意向 ---
+yosoku_h5c_b <- genpr(dpr = dn_online, mpr = mh5c_b_2, setx = "govtH", setxvals = c(0, 1),
+                      setm = "gvtresp_2", setmvals = list("ある程度の責任\n（3; 10%点）" = 3, "大きな責任\n（4; 90%点）" = 4))
+
+ggplot(yosoku_h5c_b) + 
+  geom_errorbar(aes(x=as.factor(x), ymin=lo95, ymax=up95, color=labelledm), 
+                width=0.1, linewidth=0.5, position = position_dodge(width=0.3)) +
+  geom_errorbar(aes(x=as.factor(x), ymin=lo90, ymax=up90, color=labelledm), 
+                width=0, linewidth=2, position = position_dodge(width=0.3)) +
+  geom_point(aes(x=as.factor(x), y=pr, shape=labelledm), 
+             color="white", position = position_dodge(width=0.3)) +
+  scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
+  scale_color_brewer(name="政府責任認識(自身)", type="qual", palette=2) + 
+  scale_shape_discrete(name="政府責任認識(自身)") +
+  labs(x="政府信頼", y="オンライン投票利用意向（予測値）", subtitle="H5C_B_2の検証")
+ggsave("h5c_b_2_plot.png", width = 6, height = 4)
 
 ###########################################################
 ## H4: 限界効果のプロット（技術信頼 × 政府信頼） #########
@@ -813,7 +850,7 @@ ggplot(genkai_h5b_dummy, aes(y=est)) +
 ggsave("h5b_dummy_genkaikoka_plot.png", width = 6, height = 4)
 
 ## H5C-a: 政府の責任認識による政府信頼の効果差
-genkai_h5c_a <- intereff(m = mh5c_a, 
+genkai_h5c_a <- intereff(m = mh5c_a_1, 
                          main = "govtH", 
                          mod = "gvtresp_1", 
                          modrange = range(dn$gvtresp_1, na.rm=TRUE), 
@@ -835,9 +872,32 @@ ggplot(genkai_h5c_a, aes(y=est)) +
   labs(subtitle="従属変数：投票参加意向", y="政府信頼の限界効果", x=setmlab)
 ggsave("h5c_a_genkaikoka_plot.png", width = 6, height = 4)
 
+## H5C-a_2: 政府の責任認識(自身の暮らし向)による政府信頼の効果差
+genkai_h5c_a_2 <- intereff(m = mh5c_a_2, 
+                         main = "govtH", 
+                         mod = "gvtresp_2", 
+                         modrange = range(dn$gvtresp_2, na.rm=TRUE), 
+                         nsim = 4) #GK 実際には4つ値があるので4に変更
+
+# ラベル設定
+# setxlab <- "政府信頼の限界効果" #GK 使っていないのでコメントアウト
+setmlab <- "政府の責任認識（自身）"
+setmlabels <- c("あまりない\n(1)", "少し\n(2)", 
+                "ある程度\n(3)", "大きな責任\n(4)")
+
+## 限界効果プロット（H5C-a）
+ggplot(genkai_h5c_a_2, aes(y=est)) +
+  geom_hline(aes(yintercept=0), linetype=2) + 
+  geom_errorbar(aes(ymin=lo95, ymax=up95, x=as.factor(mod)), width=0.1) +
+  geom_errorbar(aes(ymin=lo90, ymax=up90, x=as.factor(mod)), width=0, linewidth=2) +
+  geom_point(aes(x=as.factor(mod)), color="white") +
+  scale_x_discrete(labels=setmlabels) +
+  labs(subtitle="従属変数：投票参加意向", y="政府信頼の限界効果", x=setmlab)
+ggsave("h5c_a_2_genkaikoka_plot.png", width = 6, height = 4)
+
 #GK 追加
 ## H5C-b: 政府の責任認識による政府信頼の効果差
-genkai_h5c_b <- intereff(m = mh5c_b, 
+genkai_h5c_b <- intereff(m = mh5c_b_1, 
                          main = "govtH", 
                          mod = "gvtresp_1", 
                          modrange = range(dn$gvtresp_1, na.rm=TRUE), 
@@ -857,6 +917,28 @@ ggplot(genkai_h5c_b, aes(y=est)) +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：オンライン投票利用意向", y="政府信頼の限界効果", x=setmlab)
 ggsave("h5c_b_genkaikoka_plot.png", width = 6, height = 4)
+
+## H5C-b_2: 政府の責任認識(自身の暮らし向)による政府信頼の効果差
+genkai_h5c_b_2 <- intereff(m = mh5c_b_2, 
+                         main = "govtH", 
+                         mod = "gvtresp_2", 
+                         modrange = range(dn$gvtresp_2, na.rm=TRUE), 
+                         nsim = 4) #GK 実際には4つ値があるので4に変更
+
+# ラベル設定
+setmlab <- "政府の責任認識（自身）"
+setmlabels <- c("あまりない\n(1)", "少し\n(2)", 
+                "ある程度\n(3)", "大きな責任\n(4)")
+
+## 限界効果プロット（H5C-a）
+ggplot(genkai_h5c_b_2, aes(y=est)) +
+  geom_hline(aes(yintercept=0), linetype=2) + 
+  geom_errorbar(aes(ymin=lo95, ymax=up95, x=as.factor(mod)), width=0.1) +
+  geom_errorbar(aes(ymin=lo90, ymax=up90, x=as.factor(mod)), width=0, linewidth=2) +
+  geom_point(aes(x=as.factor(mod)), color="white") +
+  scale_x_discrete(labels=setmlabels) +
+  labs(subtitle="従属変数：オンライン投票利用意向", y="政府信頼の限界効果", x=setmlab)
+ggsave("h5c_b_2_genkaikoka_plot.png", width = 6, height = 4)
 
 
 ###########################################################
