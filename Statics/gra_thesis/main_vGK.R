@@ -91,6 +91,9 @@ table(dn$kanshin, exclude=F)
 
 # インターネット使用量
 dn$useinternet <- d$useinternet
+dn$dummy_useinternet <- NA
+dn$dummy_useinternet[which(d$useinternet%in%c(1,2,3,4))] <- 0
+dn$dummy_useinternet[which(d$useinternet%in%c(5,6,7))] <- 1
 
 # 社会への暮らし向きに対する政府の責任
 dn$gvtresp_1 <- 5 - d$gvtresp_1 #GK 1が責任があるなので、逆転させる
@@ -152,6 +155,9 @@ mh5c_a <- lm_robust(sankaiko ~ govtH*gvtresp_1 + onlinevote + techH, data = dn)
 mh5c_b <- lm_robust(online_sankaiko ~ govtH * gvtresp_1 + 
                       techH, data = dn_online)
 
+# H5b. Y=投票参加意向、X=オンライン投票導入、M=SNSの使用頻度、Z=政府信頼高、技術信頼高: SNSの使用頻度を01に設定
+mh5b_dummy <- lm_robust(sankaiko ~ onlinevote*dummy_useinternet + govtH + techH, data = dn)
+
 # H5の簡易的な結果
 screenreg(list(mh5a, mh5b, mh5c_a, mh5c_b), include.ci = FALSE,
           digits=3, single.row = FALSE, 
@@ -166,6 +172,11 @@ dn$marrykids[which(d$marrykids%in%c(3,6))] <- 1
 mhex_marrykids <- lm_robust(sankaiko ~ onlinevote + govtH + techH + marrykids, data = dn)
 # 簡易的な結果の表示
 screenreg(list(mhex_marrykids), include.ci = FALSE,
+          digits=3, single.row = FALSE, 
+          stars = c(0.001,0.01,0.05,0.1), symbol="+")
+
+print("\n=====発展的な仮説・インターネット使用料のダミー化====\n")
+screenreg(list(mh5b, mh5b_dummy), include.ci = FALSE,
           digits=3, single.row = FALSE, 
           stars = c(0.001,0.01,0.05,0.1), symbol="+")
 
@@ -777,6 +788,29 @@ ggplot(genkai_h5b, aes(y=est)) +
 ggsave("h5b_genkaikoka_plot.png", width = 6, height = 4)
 
 # グラフ保存 (h5b_genkaikoka_plot.png)
+
+###########################################################
+## H5B(発展): 限界効果のプロット（インターネット） dummy変数version   #
+###########################################################
+
+setmlab <- "インターネット使用量(少/多)"
+setmlabels <- c("使用少(0)","使用多(1)")
+
+genkai_h5b_dummy <- intereff(m = mh5b_dummy,
+                             main = "onlinevote",
+                             mod = "dummy_useinternet",
+                             modrange = c(0,1),
+                             nsim = 2)
+
+
+ggplot(genkai_h5b_dummy, aes(y=est)) +
+  geom_hline(aes(yintercept=0), linetype=2) + 
+  geom_errorbar(aes(ymin=lo95, ymax=up95, x=as.factor(mod)), width=0.1) +
+  geom_errorbar(aes(ymin=lo90, ymax=up90, x=as.factor(mod)), width=0, linewidth=2) +
+  geom_point(aes(x=as.factor(mod)), color="white") +
+  scale_x_discrete(labels=setmlabels) +
+  labs(subtitle="従属変数：投票参加意向", y="オンライン投票導入の限界効果", x=setmlab)
+ggsave("h5b_dummy_genkaikoka_plot.png", width = 6, height = 4)
 
 ## H5C-a: 政府の責任認識による政府信頼の効果差
 genkai_h5c_a <- intereff(m = mh5c_a, 
