@@ -84,6 +84,42 @@ dn$gvtresp_1 <- 5 - d$gvtresp_1 #GK 1が責任があるなので、逆転させ�
 # 私生活への暮らし向きに対する政府の責任
 dn$gvtresp_2 <- 5 - d$gvtresp_2 #GK 1が責任があるなので、逆転させる
 
+# 投票参加意向・オンライン投票利用意向・政治関心・SNS利用頻度の記述統計（平均・標準偏差・最小値・最大値・有効ケース数）
+desc_stats <- function(x) {
+  v <- x[!is.na(x)]
+  c(平均 = round(mean(v), 2), 標準偏差 = round(sd(v), 2), 最小値 = min(v), 最大値 = max(v), 有効ケース数 = length(v))
+}
+rbind(
+  "投票参加意向" = desc_stats(dn$sankaiko),
+  "オンライン投票利用意向" = desc_stats(dn$online_sankaiko),
+  "政治関心" = desc_stats(dn$kanshin),
+  "SNS利用頻度" = desc_stats(dn$useinternet),
+  "社会への政府の責任認識" = desc_stats(dn$gvtresp_1),
+  "自身の暮らし向きへの政府の責任認識" = desc_stats(dn$gvtresp_2)
+)
+
+## 実験条件（X1, X2, X3）の度数・割合表（LaTeX用） ####
+vars_dummy <- list(
+  "X1: オンライン投票導入" = dn$onlinevote,
+  "X2: 政府への信頼"       = dn$govtH,
+  "X3: 技術への信頼"       = dn$techH
+)
+# 0, 1 の順で集計（念のため factor で水準を固定）
+fmt_cell <- function(x) {
+  t <- table(factor(x, levels = 0:1))
+  n <- as.vector(t)
+  pct <- round(100 * prop.table(t), 1)
+  sprintf("%d (%.1f\\%%)", n, pct)
+}
+tab_rows <- lapply(vars_dummy, fmt_cell)
+# LaTeX 表の行を組み立て
+header <- "変数 & 0（低/非導入） & 1（高/導入） \\\\ \\hline"
+body   <- sapply(seq_along(tab_rows), function(i) {
+  paste(names(tab_rows)[i], " & ", tab_rows[[i]][1], " & ", tab_rows[[i]][2], " \\\\")
+})
+footer <- "\\hline"
+cat(c(header, body, footer), sep = "\n")
+
 ##オンライン投票群のみの変数####################################################
 # オンライン投票=1の群に限定
 dn_online <- subset(dn, onlinevote == 1)
@@ -320,7 +356,7 @@ ggplot(yosokuout) +
 ## (ここまで) ############################################
 
 ## グラフを任意の名前で保存
-ggsave("h1_yosokuchi_plot.png", width = 6, height = 4)
+ggsave("images/h1_yosokuchi_plot.png", width = 6, height = 4)
 
 
 ## H5A ##
@@ -383,7 +419,7 @@ ggplot(yosokuout) +
 ## (ここまで) ############################################
 
 ## グラフを任意の名前で保存
-ggsave("h5a_yosokuchi_plot.png", width = 6, height = 4)
+ggsave("images/h5a_yosokuchi_plot.png", width = 6, height = 4)
 
 
 ###########################################################
@@ -477,7 +513,7 @@ ggplot(genkaiout, aes(y=est)) +
 ##（ここまで）###################################
 
 ## グラフを任意の名前で保存
-ggsave("h5a_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h5a_genkaikoka_plot.png", width = 6, height = 4)
 
 #GK このセクションは実質的に使っていないのでコメントアウトします。
 # ###########################################################
@@ -505,7 +541,7 @@ ggsave("h5a_genkaikoka_plot.png", width = 6, height = 4)
 # setxlab <- "政府信頼度（実験条件）"
 # setylab <- "オンライン投票利用意向"
 # setlabels <- c("低信頼(0)", "高信頼(1)")
-# # ここに前述のggplotコードを当てはめて ggsave("h2b_plot.png") とします。
+# # ここに前述のggplotコードを当てはめて ggsave("images/h2b_plot.png") とします。
 
 ###########################################################
 ## H2-H5#GK: グラフ作成と保存 ##############################
@@ -523,7 +559,7 @@ ggplot(yosoku_h2a) +
   geom_point(aes(x=as.factor(x), y=pr), color="white") +
   scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
   labs(x="政府への信頼度", y="投票参加意向（予測値）", subtitle="H2Aの検証")
-ggsave("h2a_plot.png", width = 6, height = 4)
+ggsave("images/h2a_plot.png", width = 6, height = 4)
 
 # --- H2B: 政府信頼 -> オンライン利用意向 ---
 yosoku_h2b <- genpr(dpr = dn_online, mpr = mh2b, setx = "govtH", setxvals = c(0, 1))
@@ -534,7 +570,7 @@ ggplot(yosoku_h2b) +
   geom_point(aes(x=as.factor(x), y=pr), color="white") +
   scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
   labs(x="政府への信頼度", y="オンライン投票利用意向（予測値）", subtitle="H2Bの検証")
-ggsave("h2b_plot.png", width = 6, height = 4)
+ggsave("images/h2b_plot.png", width = 6, height = 4)
 
 # --- H3A: 技術信頼 -> 投票参加意向 ---
 yosoku_h3a <- genpr(dpr = dn, mpr = mh3a, setx = "techH", setxvals = c(0, 1))
@@ -545,7 +581,7 @@ ggplot(yosoku_h3a) +
   geom_point(aes(x=as.factor(x), y=pr), color="white") +
   scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
   labs(x="システムへの技術的信頼", y="投票参加意向（予測値）", subtitle="H3Aの検証")
-ggsave("h3a_plot.png", width = 6, height = 4)
+ggsave("images/h3a_plot.png", width = 6, height = 4)
 
 # --- H3B: 技術信頼 -> オンライン利用意向 ---
 yosoku_h3b <- genpr(dpr = dn_online, mpr = mh3b, setx = "techH", setxvals = c(0, 1))
@@ -556,7 +592,7 @@ ggplot(yosoku_h3b) +
   geom_point(aes(x=as.factor(x), y=pr), color="white") +
   scale_x_discrete(labels=c("低信頼(0)", "高信頼(1)")) +
   labs(x="システムへの技術的信頼", y="オンライン投票利用意向（予測値）", subtitle="H3Bの検証")
-ggsave("h3b_plot.png", width = 6, height = 4)
+ggsave("images/h3b_plot.png", width = 6, height = 4)
 
 #GK H4, H5B, H5C用の予測値プロットも出す
 
@@ -575,7 +611,7 @@ ggplot(yosoku_h4a) +
   scale_color_brewer(name="政府信頼", type="qual", palette=2) + 
   scale_shape_discrete(name="政府信頼") +
   labs(x="システムへの技術的信頼", y="投票参加意向（予測値）", subtitle="H4Aの検証")
-ggsave("h4a_plot.png", width = 6, height = 4)
+ggsave("images/h4a_plot.png", width = 6, height = 4)
 
 # --- H4B: 技術信頼*政府信頼 -> オンライン利用意向 ---
 yosoku_h4b <- genpr(dpr = dn_online, mpr = mh4b, setx = "techH", setxvals = c(0, 1),
@@ -592,7 +628,7 @@ ggplot(yosoku_h4b) +
   scale_color_brewer(name="政府信頼", type="qual", palette=2) + 
   scale_shape_discrete(name="政府信頼") +
   labs(x="システムへの技術的信頼", y="オンライン投票利用意向（予測値）", subtitle="H4Bの検証")
-ggsave("h4b_plot.png", width = 6, height = 4)
+ggsave("images/h4b_plot.png", width = 6, height = 4)
 
 # --- H5B: OL投票導入*ネット利用度 -> 投票参加意向 ---
 quantile(dn$useinternet, probs=c(0.1,0.9)) #10%点と、90%点をとる
@@ -610,7 +646,7 @@ ggplot(yosoku_h5b) +
   scale_color_brewer(name="ネット利用時間/日", type="qual", palette=2) + 
   scale_shape_discrete(name="ネット利用時間/日") +
   labs(x="オンライン投票導入の有無", y="投票参加意向（予測値）", subtitle="H5Bの検証")
-ggsave("h5b_plot.png", width = 6, height = 4)
+ggsave("images/h5b_plot.png", width = 6, height = 4)
 
 # --- H5C_A: 政府信頼*政府責任 -> 投票参加意向 ---
 quantile(dn$gvtresp_1, probs=c(0.1,0.9)) #10%点と、90%点をとる
@@ -628,7 +664,7 @@ ggplot(yosoku_h5c_a) +
   scale_color_brewer(name="政府責任認識(社会)", type="qual", palette=2) + 
   scale_shape_discrete(name="政府責任認識(社会)") +
   labs(x="政府信頼", y="投票参加意向（予測値）", subtitle="H5C_Aの検証")
-ggsave("h5c_a_plot.png", width = 6, height = 4)
+ggsave("images/h5c_a_plot.png", width = 6, height = 4)
 
 # --- H5C_A_2: 政府信頼*政府責任(自身の暮らし) -> 投票参加意向 ---
 quantile(dn$gvtresp_2, probs=c(0.1,0.9)) #10%点と、90%点をとる
@@ -646,7 +682,7 @@ ggplot(yosoku_h5c_a_2) +
   scale_color_brewer(name="政府責任認識(自身)", type="qual", palette=2) + 
   scale_shape_discrete(name="政府責任認識(自身)") +
   labs(x="政府信頼", y="投票参加意向（予測値）", subtitle="H5C_A_2の検証")
-ggsave("h5c_a_2_plot.png", width = 6, height = 4)
+ggsave("images/h5c_a_2_plot.png", width = 6, height = 4)
 
 # --- H5C_B: 政府信頼*政府責任 -> オンライン利用意向 ---
 yosoku_h5c_b <- genpr(dpr = dn_online, mpr = mh5c_b_1, setx = "govtH", setxvals = c(0, 1),
@@ -663,7 +699,7 @@ ggplot(yosoku_h5c_b) +
   scale_color_brewer(name="政府責任認識(社会)", type="qual", palette=2) + 
   scale_shape_discrete(name="政府責任認識(社会)") +
   labs(x="政府信頼", y="オンライン投票利用意向（予測値）", subtitle="H5C_Bの検証")
-ggsave("h5c_b_plot.png", width = 6, height = 4)
+ggsave("images/h5c_b_plot.png", width = 6, height = 4)
 
 # --- H5C_B_2: 政府信頼*政府責任 -> オンライン利用意向 ---
 yosoku_h5c_b <- genpr(dpr = dn_online, mpr = mh5c_b_2, setx = "govtH", setxvals = c(0, 1),
@@ -680,7 +716,7 @@ ggplot(yosoku_h5c_b) +
   scale_color_brewer(name="政府責任認識(自身)", type="qual", palette=2) + 
   scale_shape_discrete(name="政府責任認識(自身)") +
   labs(x="政府信頼", y="オンライン投票利用意向（予測値）", subtitle="H5C_B_2の検証")
-ggsave("h5c_b_2_plot.png", width = 6, height = 4)
+ggsave("images/h5c_b_2_plot.png", width = 6, height = 4)
 
 ###########################################################
 ## H4: 限界効果のプロット（技術信頼 × 政府信頼） #########
@@ -706,7 +742,7 @@ ggplot(genkai_h4a, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：投票参加意向", y="技術信頼の限界効果", x=setmlab)
-ggsave("h4a_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h4a_genkaikoka_plot.png", width = 6, height = 4)
 
 #GK 一応、裏の分析も入れておきます（こちらの方が興味深いかもですね）
 ## H4a裏: 技術信頼の高さによって、政府信頼の効果がどう変わるか
@@ -729,7 +765,7 @@ ggplot(genkai_h4aX, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：投票参加意向", y="政府信頼の限界効果", x=setmlab)
-ggsave("h4aX_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h4aX_genkaikoka_plot.png", width = 6, height = 4)
 
 #GK オンライン投票を従属変数とする分析を追加
 ## H4b: 政府信頼の高さによって、技術信頼の効果がどう変わるか
@@ -752,7 +788,7 @@ ggplot(genkai_h4b, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：オンライン投票利用意向", y="技術信頼の限界効果", x=setmlab)
-ggsave("h4b_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h4b_genkaikoka_plot.png", width = 6, height = 4)
 
 ## H4b裏: 技術信頼の高さによって、政府信頼の効果がどう変わるか
 genkai_h4bX <- intereff(m = mh4b, 
@@ -774,7 +810,7 @@ ggplot(genkai_h4bX, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：オンライン投票利用意向", y="政府信頼の限界効果", x=setmlab)
-ggsave("h4bX_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h4bX_genkaikoka_plot.png", width = 6, height = 4)
 
 
 ###########################################################
@@ -801,7 +837,7 @@ ggplot(genkai_h5b, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：投票参加意向", y="オンライン投票導入の限界効果", x=setmlab)
-ggsave("h5b_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h5b_genkaikoka_plot.png", width = 6, height = 4)
 
 # グラフ保存 (h5b_genkaikoka_plot.png)
 
@@ -826,7 +862,7 @@ ggplot(genkai_h5c_a, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：投票参加意向", y="政府信頼の限界効果", x=setmlab)
-ggsave("h5c_a_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h5c_a_genkaikoka_plot.png", width = 6, height = 4)
 
 ## H5C-a_2: 政府の責任認識(自身の暮らし向)による政府信頼の効果差
 genkai_h5c_a_2 <- intereff(m = mh5c_a_2, 
@@ -849,7 +885,7 @@ ggplot(genkai_h5c_a_2, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：投票参加意向", y="政府信頼の限界効果", x=setmlab)
-ggsave("h5c_a_2_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h5c_a_2_genkaikoka_plot.png", width = 6, height = 4)
 
 #GK 追加
 ## H5C-b: 政府の責任認識による政府信頼の効果差
@@ -872,7 +908,7 @@ ggplot(genkai_h5c_b, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：オンライン投票利用意向", y="政府信頼の限界効果", x=setmlab)
-ggsave("h5c_b_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h5c_b_genkaikoka_plot.png", width = 6, height = 4)
 
 ## H5C-b_2: 政府の責任認識(自身の暮らし向)による政府信頼の効果差
 genkai_h5c_b_2 <- intereff(m = mh5c_b_2, 
@@ -894,7 +930,7 @@ ggplot(genkai_h5c_b_2, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：オンライン投票利用意向", y="政府信頼の限界効果", x=setmlab)
-ggsave("h5c_b_2_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h5c_b_2_genkaikoka_plot.png", width = 6, height = 4)
 
 # 発展的な分析
 
@@ -907,7 +943,7 @@ p1 <- ggplot(df1, aes(x = 値, y = 度数)) +
   geom_col(fill = "steelblue", color = "white") +
   labs(title = "gvtresp_1の分布", x = "gvtresp_1", y = "度数") +
   theme_bw()
-ggsave("gvtresp_1_hist.png", p1, width = 5, height = 4, dpi = 120)
+ggsave("images/gvtresp_1_hist.png", p1, width = 5, height = 4, dpi = 120)
 
 
 # 表をデータフレームに
@@ -918,7 +954,7 @@ p2 <- ggplot(df2, aes(x = 値, y = 度数)) +
   geom_col(fill = "steelblue", color = "white") +
   labs(title = "gvtresp_2の分布", x = "gvtresp_2", y = "度数") +
   theme_bw()
-ggsave("gvtresp_2_hist.png", p2, width = 5, height = 4, dpi = 120)
+ggsave("images/gvtresp_2_hist.png", p2, width = 5, height = 4, dpi = 120)
 
 
 ## H5b. 変数の定義
@@ -950,7 +986,7 @@ ggplot(genkai_h5b_dummy, aes(y=est)) +
   geom_point(aes(x=as.factor(mod)), color="white") +
   scale_x_discrete(labels=setmlabels) +
   labs(subtitle="従属変数：投票参加意向", y="オンライン投票導入の限界効果", x=setmlab)
-ggsave("h5b_dummy_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/h5b_dummy_genkaikoka_plot.png", width = 6, height = 4)
 
 ## 実験刺激文が機能しているかのチェック
 dn$techH <- as.numeric(d$exp2_techH)
@@ -972,11 +1008,11 @@ ggplot(yosoku_techT, aes(x = as.factor(x), y = pr)) +
   scale_x_discrete(labels = c("技術信頼低(0)", "技術信頼高(1)")) +
   labs(x = "実験条件（技術への信頼）", 
        y = "オンライン投票システムの信頼度（予測値）",
-       subtitle = "jikken") +
+       subtitle = "技術への信頼度") +
   theme_minimal() +
   theme(panel.background = element_rect(fill = "white", colour = NA),
         plot.background = element_rect(fill = "white", colour = NA))
-ggsave("mctechT_plot.png", width = 6, height = 4)
+ggsave("images/mctechT_plot.png", width = 6, height = 4)
 
 ## 子どもがいると投票に対する意見に変化が生じる: 押田くんの提案を受けて
 dn$marrykids <- d$marrykids
@@ -1016,7 +1052,7 @@ ggplot(yosoku_marrykids) +
   labs(x=setxlab, y=paste0(setylab, "（予測値平均）"),
        caption="注：エラーバーは、90％および95％信頼区間を示している。") +
   theme(plot.subtitle = element_text(hjust=0.5))
-ggsave("marrykids_yosokuchi_plot.png", width = 6, height = 4)
+ggsave("images/marrykids_yosokuchi_plot.png", width = 6, height = 4)
 
 ###########################################################
 ## 子供の数とオンライン投票導入の交互作用モデル #########
@@ -1061,7 +1097,7 @@ ggplot(genkai_marrykids, aes(y=est)) +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.y = element_blank(),
         plot.subtitle = element_text(hjust=0.5))
-ggsave("marrykids_genkaikoka_plot.png", width = 6, height = 4)
+ggsave("images/marrykids_genkaikoka_plot.png", width = 6, height = 4)
 
 ###########################################################
 ## 子供の数の限界効果（オンライン投票導入で条件付け） ##
@@ -1094,4 +1130,4 @@ ggplot(genkai_marrykids_rev, aes(y=est)) +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.y = element_blank(),
         plot.subtitle = element_text(hjust=0.5))
-ggsave("marrykids_genkaikoka_rev_plot.png", width = 6, height = 4)
+ggsave("images/marrykids_genkaikoka_rev_plot.png", width = 6, height = 4)
